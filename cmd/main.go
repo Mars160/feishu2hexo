@@ -85,7 +85,7 @@ func main() {
 			{
 				Name:    "hexo",
 				Aliases: []string{"hexo"},
-				Usage:   "Download feishu/larksuite document to Hexo markdown file",
+				Usage:   "Convert feishu/larksuite document to Hexo markdown file",
 				Flags: []cli.Flag{
 					&cli.StringFlag{
 						Name:        "output",

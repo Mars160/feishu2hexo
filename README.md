@@ -54,6 +54,7 @@
    COMMANDS:
      config        Read config file or set field(s) if provided
      download, dl  Download feishu/larksuite document to markdown file
+     hexo, hexo    Convert feishu/larksuite document to Hexo markdown file
      help, h       Shows a list of commands or help for one command
 
    GLOBAL OPTIONS:
@@ -75,10 +76,10 @@
    $ feishu2md dl -h
    NAME:
      feishu2md download - Download feishu/larksuite document to markdown file
- 
+
    USAGE:
      feishu2md download [command options] <url>
- 
+
    OPTIONS:
      --output value, -o value  Specify the output directory for the markdown files (default: "./")
      --dump                    Dump json response of the OPEN API (default: false)
@@ -172,3 +173,4 @@
 
 - [chyroc/lark](https://github.com/chyroc/lark)
 - [chyroc/lark_docs_md](https://github.com/chyroc/lark_docs_md)
+- [Wsine/feishu2md](https://github.com/Wsine/feishu2md)
