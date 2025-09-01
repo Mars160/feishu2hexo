@@ -84,7 +84,7 @@ func main() {
 			},
 			{
 				Name:    "hexo",
-				Aliases: []string{"hexo"},
+				Aliases: []string{"hx"},
 				Usage:   "Download feishu/larksuite document to Hexo markdown file",
 				Flags: []cli.Flag{
 					&cli.StringFlag{
@@ -127,6 +127,54 @@ func main() {
 					} else {
 						url := ctx.Args().First()
 						return handleHexoCommand(url)
+					}
+				},
+			},
+			{
+				Name:    "hugo",
+				Aliases: []string{"hg"},
+				Usage:   "Download feishu/larksuite document to Hugo markdown file",
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:        "output",
+						Aliases:     []string{"o"},
+						Value:       "./",
+						Usage:       "Specify the output directory for the markdown files",
+						Destination: &hugoOpts.outputDir,
+					},
+					&cli.StringFlag{
+						Name:        "tags",
+						Aliases:     []string{"t"},
+						Value:       "论文,算法",
+						Usage:       "Specify the tags for the post, split by comma",
+						Destination: &hugoOpts.tags,
+					},
+					&cli.BoolFlag{
+						Name:        "dump",
+						Value:       false,
+						Usage:       "Dump json response of the OPEN API",
+						Destination: &hugoOpts.dump,
+					},
+					&cli.BoolFlag{
+						Name:        "batch",
+						Value:       false,
+						Usage:       "Download all documents under a folder",
+						Destination: &hugoOpts.batch,
+					},
+					&cli.BoolFlag{
+						Name:        "wiki",
+						Value:       false,
+						Usage:       "Download all documents within the wiki.",
+						Destination: &hugoOpts.wiki,
+					},
+				},
+				ArgsUsage: "<url>",
+				Action: func(ctx *cli.Context) error {
+					if ctx.NArg() == 0 {
+						return cli.Exit("Please specify the document/folder/wiki url", 1)
+					} else {
+						url := ctx.Args().First()
+						return handleHugoCommand(url)
 					}
 				},
 			},

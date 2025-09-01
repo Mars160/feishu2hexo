@@ -14,6 +14,8 @@ type Parser struct {
 	useHTMLTags bool
 	ImgTokens   []string
 	blockMap    map[string]*lark.DocxBlock
+	ForHugo     bool
+	hasEquation bool
 }
 
 func NewParser(config OutputConfig) *Parser {
@@ -122,7 +124,13 @@ func (p *Parser) ParseDocxContent(doc *lark.DocxDocument, blocks []*lark.DocxBlo
 	}
 
 	entryBlock := p.blockMap[doc.DocumentID]
-	return p.ParseDocxBlock(entryBlock, 0)
+
+	result := p.ParseDocxBlock(entryBlock, 0)
+	if p.hasEquation && p.ForHugo {
+		result = "\n\n{{< katex >}}\n\n" + result
+	}
+
+	return result
 }
 
 func (p *Parser) ParseDocxBlock(b *lark.DocxBlock, indentLevel int) string {
@@ -222,11 +230,19 @@ func (p *Parser) ParseDocxBlockText(b *lark.DocxBlockText) string {
 func (p *Parser) ParseDocxBlockCallout(b *lark.DocxBlock) string {
 	buf := new(strings.Builder)
 
-	buf.WriteString(">[!TIP] \n")
+	if p.ForHugo {
+		buf.WriteString("{{< lead >}}\n")
+	} else {
+		buf.WriteString(">[!TIP] \n")
+	}
 
 	for _, childId := range b.Children {
 		childBlock := p.blockMap[childId]
 		buf.WriteString(p.ParseDocxBlock(childBlock, 0))
+	}
+
+	if p.ForHugo {
+		buf.WriteString("{{< /lead >}}\n")
 	}
 
 	return buf.String()
@@ -244,11 +260,19 @@ func (p *Parser) ParseDocxTextElement(e *lark.DocxTextElement, inline bool) stri
 			fmt.Sprintf("[%s](%s)", e.MentionDoc.Title, utils.UnescapeURL(e.MentionDoc.URL)))
 	}
 	if e.Equation != nil {
-		symbol := "$$"
+		p.hasEquation = true
+		start_symbol := "$$"
+		end_symbol := "$$"
 		if inline {
-			symbol = "$"
+			if p.ForHugo {
+				start_symbol = "\\("
+				end_symbol = "\\)"
+			} else {
+				start_symbol = "$"
+				end_symbol = "$"
+			}
 		}
-		buf.WriteString(symbol + strings.TrimSuffix(e.Equation.Content, "\n") + symbol)
+		buf.WriteString(start_symbol + strings.TrimSuffix(e.Equation.Content, "\n") + end_symbol)
 	}
 	return buf.String()
 }
