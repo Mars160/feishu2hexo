@@ -13,7 +13,6 @@ import (
 	"github.com/88250/lute"
 	"github.com/Wsine/feishu2md/core"
 	"github.com/Wsine/feishu2md/utils"
-	"github.com/chyroc/lark"
 	"github.com/pkg/errors"
 )
 
@@ -28,6 +27,51 @@ type HugoOpts struct {
 var hugoOpts = HugoOpts{}
 
 func hugoDocument(ctx context.Context, client *core.Client, url string, opts *HugoOpts) error {
+	// 获取当前工作目录
+	here, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	// 向上查找hugo根目录
+	// 有子文件夹config、content、static、themes
+	// 有子文件hugo.yaml或hugo.toml或hugo.json或hugo.yml
+	sub_dirs := []string{"config", "content", "static", "themes"}
+	sub_files := []string{"hugo.yaml", "hugo.toml", "hugo.json", "hugo.yml"}
+	// 需要有所有的子目录，文件有一个即可
+	for {
+		// 如果here是根目录了，/ 或者 Windows中的某个盘符
+		if here == "/" || (len(here) == 2 && here[1] == ':') {
+			return errors.New("hugo root directory not found")
+		}
+		all_dirs_exist := true
+		for _, sub_dir := range sub_dirs {
+			if _, err := os.Stat(filepath.Join(here, sub_dir)); os.IsNotExist(err) {
+				all_dirs_exist = false
+				break
+			}
+		}
+		if !all_dirs_exist {
+			// 向上一级目录查找
+			here = filepath.Dir(here)
+			continue
+		}
+
+		// 检查文件是否存在
+		file_exists := false
+		for _, sub_file := range sub_files {
+			if _, err := os.Stat(filepath.Join(here, sub_file)); !os.IsNotExist(err) {
+				file_exists = true
+				break
+			}
+		}
+		if file_exists {
+			break // 找到hugo根目录了
+		}
+
+		// 向上一级目录查找
+		here = filepath.Dir(here)
+	}
 	// Validate the url to download
 	docType, docToken, err := utils.ValidateDocumentURL(url)
 	if err != nil {
@@ -62,7 +106,7 @@ func hugoDocument(ctx context.Context, client *core.Client, url string, opts *Hu
 	markdown := parser.ParseDocxContent(docx, blocks)
 
 	sanitizeFileName := utils.SanitizeFileName(title)
-	img_dir := fmt.Sprintf("../static/post_imgs/%s", sanitizeFileName)
+	img_dir := filepath.Join(here, "static", "post_imgs", sanitizeFileName)
 	img_dir = strings.ReplaceAll(img_dir, " ", "_")
 	if _, err := os.Stat(img_dir); os.IsNotExist(err) {
 		if err := os.MkdirAll(img_dir, 0o755); err != nil {
@@ -117,24 +161,6 @@ func hugoDocument(ctx context.Context, client *core.Client, url string, opts *Hu
 	// 	}
 	// }
 
-	if hugoOpts.dump {
-		jsonName := fmt.Sprintf("%s.json", docToken)
-		outputPath := filepath.Join(opts.outputDir, jsonName)
-		data := struct {
-			Document *lark.DocxDocument `json:"document"`
-			Blocks   []*lark.DocxBlock  `json:"blocks"`
-		}{
-			Document: docx,
-			Blocks:   blocks,
-		}
-		pdata := utils.PrettyPrint(data)
-
-		if err = os.WriteFile(outputPath, []byte(pdata), 0o644); err != nil {
-			return err
-		}
-		fmt.Printf("Dumped json response to %s\n", outputPath)
-	}
-
 	tags := strings.Split(hugoOpts.tags, ",")
 
 	// Write to markdown file
@@ -154,7 +180,7 @@ func hugoDocument(ctx context.Context, client *core.Client, url string, opts *Hu
 		metaContent += "  - " + tag + "\n"
 	}
 	metaContent += "---\n\n"
-	outputDir := filepath.Join(opts.outputDir, "posts", mdName[:len(mdName)-3])
+	outputDir := filepath.Join(here, "content", "posts", mdName[:len(mdName)-3])
 	if _, err := os.Stat(outputDir); os.IsNotExist(err) {
 		if err := os.MkdirAll(outputDir, 0o755); err != nil {
 			return err
