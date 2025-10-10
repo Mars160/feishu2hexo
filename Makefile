@@ -3,9 +3,9 @@ HAS_UPX := $(shell command -v upx 2> /dev/null)
 
 .PHONY: build
 build:
-	go build -ldflags="-X main.version=v2-`git rev-parse --short HEAD`" -o ./feishu2md cmd/*.go
+	go build -ldflags="-X main.version=v2-`git rev-parse --short HEAD`" -o ./feishu2hexo cmd/*.go
 ifneq ($(and $(COMPRESS),$(HAS_UPX)),)
-	upx -9 ./feishu2md
+	upx -9 ./feishu2hexo
 endif
 
 .PHONY: test
@@ -14,19 +14,19 @@ test:
 
 .PHONY: server
 server:
-	go build -o ./feishu2md4web web/*.go
+	go build -o ./feishu2hexo4web web/*.go
 
 .PHONY: image
 image:
-	docker build -t feishu2md .
+	docker build -t feishu2hexo .
 
 .PHONY: docker
 docker:
-	docker run -it --rm -p 8080:8080 feishu2md
+	docker run -it --rm -p 8080:8080 feishu2hexo
 
 .PHONY: clean
 clean:  ## Clean build bundles
-	rm -f ./feishu2md ./feishu2md4web
+	rm -f ./feishu2hexo ./feishu2hexo4web
 
 .PHONY: format
 format:

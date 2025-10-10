@@ -1,176 +1,456 @@
-# feishu2md
+# feishu2hexo
 
-[![Golang - feishu2md](https://img.shields.io/github/go-mod/go-version/wsine/feishu2md?color=%2376e1fe&logo=go)](https://go.dev/)
-[![Unittest](https://github.com/Wsine/feishu2md/actions/workflows/unittest.yaml/badge.svg)](https://github.com/Wsine/feishu2md/actions/workflows/unittest.yaml)
-[![Release](https://img.shields.io/github/v/release/wsine/feishu2md?color=orange&logo=github)](https://github.com/Wsine/feishu2md/releases)
-[![Docker - feishu2md](https://img.shields.io/badge/Docker-feishu2md-2496ed?logo=docker&logoColor=white)](https://hub.docker.com/r/wwwsine/feishu2md)
-[![Render - feishu2md](https://img.shields.io/badge/Render-feishu2md-4cfac9?logo=render&logoColor=white)](https://feishu2md.onrender.com)
-![Last Review](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fbadge-last-review.wsine.workers.dev%2FWsine%2Ffeishu2md&query=%24.reviewed_at&label=last%20review)
+<div align="center">
 
-这是一个下载飞书文档为 Markdown 文件的工具，使用 Go 语言实现。
+![Golang](https://img.shields.io/github/go-mod/go-version/Mars160/feishu2hexo?color=00ADD8&logo=go)
+![Release](https://img.shields.io/github/v/release/Mars160/feishu2hexo?color=orange&logo=github)
+![License](https://img.shields.io/github/license/Mars160/feishu2hexo?color=blue)
+![Tests](https://github.com/Mars160/feishu2hexo/actions/workflows/unittest.yaml/badge.svg)
+![Docker](https://img.shields.io/badge/Docker-feishu2hexo-2496ed?logo=docker&logoColor=white)
+![Render](https://img.shields.io/badge/Render-feishu2hexo-4cfac9?logo=render&logoColor=white)
 
-**请看这里：招募有需求和有兴趣的开发者，共同探讨开发维护，有兴趣请联系。**
+**A powerful tool to download Feishu/LarkSuite documents as Markdown files**
 
-## 动机
+[快速开始](#快速开始) • [使用文档](#使用文档) • [API 参考](#api-参考) • [贡献指南](#贡献指南)
 
-[《一日一技 | 我开发的这款小工具，轻松助你将飞书文档转为 Markdown》](https://sspai.com/post/73386)
+</div>
 
-## 获取 API Token
+## 📋 目录
 
-配置文件需要填写 APP ID 和 APP SECRET 信息，请参考 [飞书官方文档](https://open.feishu.cn/document/ukTMukTMukTM/ukDNz4SO0MjL5QzM/get-) 获取。推荐设置为
+- [功能特性](#功能特性)
+- [快速开始](#快速开始)
+- [安装方式](#安装方式)
+- [配置说明](#配置说明)
+- [使用文档](#使用文档)
+- [进阶用法](#进阶用法)
+- [架构设计](#架构设计)
+- [常见问题](#常见问题)
+- [贡献指南](#贡献指南)
+- [致谢](#致谢)
 
-- 进入飞书[开发者后台](https://open.feishu.cn/app)
-- 创建企业自建应用（个人版），信息随意填写
-- （重要）打开权限管理，开通以下必要的权限（可点击以下链接参考 API 调试台->权限配置字段）
-  - [获取文档基本信息](https://open.feishu.cn/document/server-docs/docs/docs/docx-v1/document/get)，「查看新版文档」权限 `docx:document:readonly`
-  - [获取文档所有块](https://open.feishu.cn/document/server-docs/docs/docs/docx-v1/document/list)，「查看新版文档」权限 `docx:document:readonly`
-  - [下载素材](https://open.feishu.cn/document/server-docs/docs/drive-v1/media/download)，「下载云文档中的图片和附件」权限 `docs:document.media:download`
-  - [获取文件夹中的文件清单](https://open.feishu.cn/document/server-docs/docs/drive-v1/folder/list)，「查看、评论、编辑和管理云空间中所有文件」权限 `drive:file:readonly`
-  - [获取知识空间节点信息](https://open.feishu.cn/document/server-docs/docs/wiki-v2/space-node/get_node)，「查看知识库」权限 `wiki:wiki:readonly`
-- 打开凭证与基础信息，获取 App ID 和 App Secret
+## ✨ 功能特性
 
-## 如何使用
+- 🚀 **多格式支持** - 支持标准 Markdown、Hexo、Hugo 格式输出
+- 📁 **批量下载** - 支持整个文件夹或知识库的批量下载
+- 🖼️ **图片处理** - 自动下载并本地化文档中的所有图片
+- 🔄 **格式转换** - 智能转换 Feishu 文档块为标准 Markdown 语法
+- 🌐 **跨平台** - 支持 Windows、macOS、Linux
+- 🐳 **容器化** - 提供 Docker 镜像，开箱即用
+- 🌍 **在线服务** - 提供在线版本，无需安装
 
-注意：飞书旧版文档的下载工具已决定不再维护，但分支 [v1_support](https://github.com/Wsine/feishu2md/tree/v1_support) 仍可使用，对应的归档为 [v1.4.0](https://github.com/Wsine/feishu2md/releases/tag/v1.4.0)，请知悉。
+## 🚀 快速开始
 
-<details>
-  <summary>命令行版本</summary>
+### 1. 获取 API 凭证
 
-  借助 Go 语言跨平台的特性，已编译好了主要平台的可执行文件，可以在 [Release](https://github.com/Wsine/feishu2md/releases) 中下载，并将相应平台的 feishu2md 可执行文件放置在 PATH 路径中即可。
+前往 [飞书开放平台](https://open.feishu.cn/app) 创建应用并获取：
 
-   **查阅帮助文档**
+- **App ID** - 应用标识
+- **App Secret** - 应用密钥
+
+### 2. 安装工具
+
+#### 方式一：下载预编译二进制文件（推荐）
+
+从 [Releases 页面](https://github.com/Mars160/feishu2hexo/releases) 下载对应平台的可执行文件。
+
+#### 方式二：使用 Go 安装
+
+```bash
+go install github.com/Mars160/feishu2hexo/cmd/feishu2hexo@latest
+```
+
+#### 方式三：使用 Docker
+
+```bash
+docker run -it --rm -p 8080:8080 \
+  -e FEISHU_APP_ID=<your_app_id> \
+  -e FEISHU_APP_SECRET=<your_app_secret> \
+  wwMars160/feishu2hexo
+```
+
+### 3. 配置凭证
+
+```bash
+feishu2hexo config --appId <your_app_id> --appSecret <your_app_secret>
+```
+
+### 4. 下载文档
+
+```bash
+# 下载单个文档
+feishu2hexo dl "https://your-domain.feishu.cn/docx/xxxxx"
+
+# 下载为 Hexo 博客格式
+feishu2hexo hexo -o posts/ -t "技术,教程" "https://your-domain.feishu.cn/docx/xxxxx"
+
+# 下载为 Hugo 博客格式
+feishu2hexo hugo -o content/posts/ "https://your-domain.feishu.cn/docx/xxxxx"
+```
+
+## 📦 安装方式
+
+### 预编译二进制文件
+
+| 平台    | 架构  | 下载链接                                                                                |
+| ------- | ----- | --------------------------------------------------------------------------------------- |
+| Windows | x64   | [feishu2hexo-windows-amd64.exe](https://github.com/Mars160/feishu2hexo/releases/latest) |
+| macOS   | x64   | [feishu2hexo-darwin-amd64](https://github.com/Mars160/feishu2hexo/releases/latest)      |
+| macOS   | ARM64 | [feishu2hexo-darwin-arm64](https://github.com/Mars160/feishu2hexo/releases/latest)      |
+| Linux   | x64   | [feishu2hexo-linux-amd64](https://github.com/Mars160/feishu2hexo/releases/latest)       |
+
+### 从源码编译
+
+```bash
+git clone https://github.com/Mars160/feishu2hexo.git
+cd feishu2hexo
+make build
+```
+
+## ⚙️ 配置说明
+
+### 必需权限
+
+在飞书开放平台中，需要开通以下权限：
+
+| 权限名称                               | 权限代码                       | 说明                   |
+| -------------------------------------- | ------------------------------ | ---------------------- |
+| 查看新版文档                           | `docx:document:readonly`       | 获取文档基本信息和内容 |
+| 下载云文档中的图片和附件               | `docs:document.media:download` | 下载文档中的图片       |
+| 查看、评论、编辑和管理云空间中所有文件 | `drive:file:readonly`          | 访问文件夹             |
+| 查看知识库                             | `wiki:wiki:readonly`           | 访问知识库             |
+
+### 配置文件
+
+配置文件位置：`~/.config/feishu2hexo/config.json`
+
+```json
+{
+  "feishu": {
+    "app_id": "your_app_id",
+    "app_secret": "your_app_secret"
+  },
+  "output": {
+    "image_dir": "static",
+    "title_as_filename": false,
+    "use_html_tags": false,
+    "skip_img_download": false
+  }
+}
+```
+
+## 📖 使用文档
+
+### 命令行界面
+
+#### 全局选项
+
+```bash
+feishu2hexo [global options] command [command options] [arguments...]
+
+GLOBAL OPTIONS:
+  --help, -h     显示帮助信息
+  --version, -v  显示版本信息
+```
+
+#### config 命令 - 配置管理
+
+```bash
+feishu2hexo config [options...]
+
+OPTIONS:
+  --appId value      设置 App ID
+  --appSecret value  设置 App Secret
+```
+
+示例：
+
+```bash
+# 设置配置
+feishu2hexo config --appId cli_xxx --appSecret xxx
+
+# 查看当前配置
+feishu2hexo config
+```
+
+#### download 命令 - 下载文档
+
+```bash
+feishu2hexo download [options...] <url>
+
+OPTIONS:
+  --output value, -o value  指定输出目录 (默认: "./")
+  --dump                    导出 API 响应的 JSON 数据
+  --batch                   批量下载文件夹内所有文档
+  --wiki                    下载知识库内所有文档
+```
+
+示例：
+
+```bash
+# 下载单个文档
+feishu2hexo dl "https://domain.feishu.cn/docx/xxxxx"
+
+# 批量下载文件夹
+feishu2hexo dl --batch -o output/ "https://domain.feishu.cn/drive/folder/xxxxx"
+
+# 下载整个知识库
+feishu2hexo dl --wiki -o output/ "https://domain.feishu.cn/wiki/settings/xxxxx"
+```
+
+#### hexo 命令 - 转换为 Hexo 格式
+
+```bash
+feishu2hexo hexo [options...] <url>
+
+OPTIONS:
+  --output value, -o value  指定输出目录 (默认: "./")
+  --tags value, -t value    设置文章标签，用逗号分隔 (默认: "论文,算法")
+  --dump                    导出 API 响应的 JSON 数据
+  --batch                   批量下载文件夹内所有文档
+  --wiki                    下载知识库内所有文档
+```
+
+生成的 Hexo 文件格式：
+
+```markdown
+---
+title: 文档标题
+date: 2024-01-01 12:00:00
+updated: 2024-01-01 12:00:00
+tags: [标签1, 标签2]
+categories: []
+---
+
+文档内容...
+```
+
+#### hugo 命令 - 转换为 Hugo 格式
+
+```bash
+feishu2hexo hugo [options...] <url>
+
+OPTIONS:
+  --output value, -o value  指定输出目录 (默认: "./")
+  --tags value, -t value    设置文章标签，用逗号分隔 (默认: "论文,算法")
+  --dump                    导出 API 响应的 JSON 数据
+  --batch                   批量下载文件夹内所有文档
+  --wiki                    下载知识库内所有文档
+```
+
+Hugo 模式会自动检测 Hugo 项目根目录，图片默认保存到 `static/post_imgs/`。
+
+### Web 界面
+
+#### 使用 Docker
+
+```yaml
+# docker-compose.yml
+version: "3"
+services:
+  feishu2hexo:
+    image: wwMars160/feishu2hexo
+    environment:
+      FEISHU_APP_ID: <your_app_id>
+      FEISHU_APP_SECRET: <your_app_secret>
+      GIN_MODE: release
+    ports:
+      - "8080:8080"
+```
+
+启动服务：
+
+```bash
+docker-compose up -d
+```
+
+访问 http://localhost:8080 使用 Web 界面。
+
+#### 在线版本
+
+访问 https://feishu2hexo.onrender.com/ 使用在线版本（仅供测试使用）。
+
+## 🎯 进阶用法
+
+### 批量处理脚本
+
+```bash
+#!/bin/bash
+# 批量下载多个文档
+
+urls=(
+  "https://domain.feishu.cn/docx/doc1"
+  "https://domain.feishu.cn/docx/doc2"
+  "https://domain.feishu.cn/docx/doc3"
+)
+
+for url in "${urls[@]}"; do
+  echo "Processing: $url"
+  feishu2hexo hexo -o posts/ "$url"
+done
+```
+
+### 集成到 CI/CD
+
+```yaml
+# GitHub Actions 示例
+name: Convert Feishu Docs
+on:
+  push:
+    paths:
+      - "docs-list.txt"
+
+jobs:
+  convert:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: "1.21"
+
+      - name: Install feishu2hexo
+        run: go install github.com/Mars160/feishu2hexo/cmd/feishu2hexo@latest
+
+      - name: Convert documents
+        env:
+          FEISHU_APP_ID: ${{ secrets.FEISHU_APP_ID }}
+          FEISHU_APP_SECRET: ${{ secrets.FEISHU_APP_SECRET }}
+        run: |
+          feishu2hexo config --appId $FEISHU_APP_ID --appSecret $FEISHU_APP_SECRET
+          while read -r url; do
+            feishu2hexo hexo -o content/posts/ "$url"
+          done < docs-list.txt
+```
+
+## 🏗️ 架构设计
+
+```
+feishu2hexo/
+├── cmd/              # CLI 命令实现
+│   ├── main.go       # 主入口和命令路由
+│   ├── config.go     # 配置命令
+│   ├── download.go   # 下载命令
+│   ├── hexo.go       # Hexo 转换命令
+│   └── hugo.go       # Hugo 转换命令
+├── core/             # 核心业务逻辑
+│   ├── client.go     # Feishu API 客户端
+│   ├── config.go     # 配置管理
+│   └── parser.go     # 文档解析器
+├── utils/            # 工具函数
+│   ├── common.go     # 通用工具
+│   └── url.go        # URL 解析
+└── web/              # Web 服务
+    ├── main.go       # Web 服务器
+    └── download.go   # Web 下载接口
+```
+
+### 核心流程
+
+1. **URL 解析** - 提取文档类型和 Token
+2. **API 调用** - 通过 Feishu SDK 获取文档内容
+3. **内容解析** - 将文档块转换为 Markdown
+4. **资源处理** - 下载并本地化图片等资源
+5. **格式化输出** - 根据指定格式生成最终文件
+
+## ❓ 常见问题
+
+### Q: 为什么出现权限错误？
+
+A: 请确保已在飞书开放平台开通了所有必需权限，并且应用已发布。
+
+### Q: 批量下载速度很慢？
+
+A: 工具已内置速率限制（4 QPS），这是 Feishu API 的限制。如需更快速度，请申请提高 API 限额。
+
+### Q: 图片下载失败？
+
+A: 检查网络连接和防火墙设置，确保能够访问 Feishu 的 CDN。
+
+### Q: Docker 版本无法使用批量下载？
+
+A: Docker 版本目前仅支持单个文档下载，批量功能请使用 CLI 版本。
+
+### Q: 如何迁移旧版文档？
+
+A: 旧版 Feishu 文档已不再支持，请使用 [v1_support](https://github.com/Mars160/feishu2hexo/tree/v1_support) 分支。
+
+## 🤝 贡献指南
+
+我们欢迎所有形式的贡献！
+
+### 开发环境搭建
+
+1. Fork 本仓库
+2. 克隆到本地：
 
    ```bash
-   $ feishu2md -h
-   NAME:
-     feishu2md - Download feishu/larksuite document to markdown file
-
-   USAGE:
-     feishu2md [global options] command [command options] [arguments...]
-
-   VERSION:
-     v2-0e25fa5
-
-   COMMANDS:
-     config        Read config file or set field(s) if provided
-     download, dl  Download feishu/larksuite document to markdown file
-     hexo, hexo    Convert feishu/larksuite document to Hexo markdown file
-     help, h       Shows a list of commands or help for one command
-
-   GLOBAL OPTIONS:
-     --help, -h     show help (default: false)
-     --version, -v  print the version (default: false)
-
-   $ feishu2md config -h
-   NAME:
-      feishu2md config - Read config file or set field(s) if provided
-
-   USAGE:
-      feishu2md config [command options] [arguments...]
-
-   OPTIONS:
-      --appId value      Set app id for the OPEN API
-      --appSecret value  Set app secret for the OPEN API
-      --help, -h         show help (default: false)
-
-   $ feishu2md dl -h
-   NAME:
-     feishu2md download - Download feishu/larksuite document to markdown file
-
-   USAGE:
-     feishu2md download [command options] <url>
-
-   OPTIONS:
-     --output value, -o value  Specify the output directory for the markdown files (default: "./")
-     --dump                    Dump json response of the OPEN API (default: false)
-     --batch                   Download all documents under a folder (default: false)
-     --wiki                    Download all documents within the wiki. (default: false)
-     --help, -h                show help (default: false)
-
+   git clone https://github.com/your-username/feishu2hexo.git
+   cd feishu2hexo
    ```
 
-   **生成配置文件**
-
-   通过 `feishu2md config --appId <your_id> --appSecret <your_secret>` 命令即可生成该工具的配置文件。
-
-   通过 `feishu2md config` 命令可以查看配置文件路径以及是否成功配置。
-
-   更多的配置选项请手动打开配置文件更改。
-
-   **下载单个文档为 Markdown**
-
-   通过 `feishu2md dl <your feishu docx url>` 直接下载，文档链接可以通过 **分享 > 开启链接分享 > 互联网上获得链接的人可阅读 > 复制链接** 获得。
-
-   示例：
+3. 安装依赖：
 
    ```bash
-   $ feishu2md dl "https://domain.feishu.cn/docx/docxtoken"
+   go mod download
    ```
 
-  **批量下载某文件夹内的全部文档为 Markdown**
-
-  此功能暂时不支持Docker版本
-
-  通过`feishu2md dl --batch <your feishu folder url>` 直接下载，文件夹链接可以通过 **分享 > 开启链接分享 > 互联网上获得链接的人可阅读 > 复制链接** 获得。
-
-  示例：
-
-  ```bash
-  $ feishu2md dl --batch -o output_directory "https://domain.feishu.cn/drive/folder/foldertoken"
-  ```
-
-  **批量下载某知识库的全部文档为 Markdown**
-
-  通过`feishu2md dl --wiki <your feishu wiki setting url>` 直接下载，wiki settings链接可以通过 打开知识库设置获得。
-
-  示例：
-
-  ```bash
-  $ feishu2md dl --wiki -o output_directory "https://domain.feishu.cn/wiki/settings/123456789101112"
-  ```
-
-</details>
-
-<details>
-  <summary>Docker版本</summary>
-
-  Docker 镜像：https://hub.docker.com/r/wwwsine/feishu2md
-
-   Docker 命令：`docker run -it --rm -p 8080:8080 -e FEISHU_APP_ID=<your id> -e FEISHU_APP_SECRET=<your secret> -e GIN_MODE=release wwwsine/feishu2md`
-
-   Docker Compose:
-
-   ```yml
-   # docker-compose.yml
-   version: '3'
-   services:
-     feishu2md:
-       image: wwwsine/feishu2md
-       environment:
-         FEISHU_APP_ID: <your id>
-         FEISHU_APP_SECRET: <your secret>
-         GIN_MODE: release
-       ports:
-         - "8080:8080"
+4. 运行测试：
+   ```bash
+   make test
    ```
 
-   启动服务 `docker compose up -d`
+### 提交代码
 
-   然后访问 https://127.0.0.1:8080 粘贴文档链接即可，文档链接可以通过 **分享 > 开启链接分享 > 复制链接** 获得。
-</details>
+1. 创建功能分支：
 
-<details>
-  <summary>在线版本</summary>
+   ```bash
+   git checkout -b feature/your-feature
+   ```
 
-  我使用个人的测试 API Token 部署了一个 Unstable 版本在 Render 平台上，该版本不会保存任何的文档资料和图片在容器中，直接通过 HTTP 从**内存**中返回压缩包文件，但是 Render 平台的 Log 可能会记录一些 HTTP 信息。
+2. 提交更改：
 
-  在版本仅供不在意隐私或懒于配置的用户临时使用，也可用于测试对比是否自己的 Token 权限配置有问题。Render 平台使用免费配额，仅有 512M 内存，不保证高可用性，信任链全靠开源代码，请自行斟酌。
+   ```bash
+   git commit -m "feat: add new feature"
+   ```
 
-  访问 https://feishu2md.onrender.com/ 粘贴文档链接即可，文档链接可以通过 **分享 > 开启链接分享 > 复制链接** 获得。
-</details>
+3. 推送分支：
 
-## 感谢
+   ```bash
+   git push origin feature/your-feature
+   ```
 
-- [chyroc/lark](https://github.com/chyroc/lark)
-- [chyroc/lark_docs_md](https://github.com/chyroc/lark_docs_md)
-- [Wsine/feishu2md](https://github.com/Wsine/feishu2md)
+4. 创建 Pull Request
+
+### 代码规范
+
+- 遵循 Go 官方代码规范
+- 运行 `make format` 格式化代码
+- 添加适当的测试用例
+- 更新相关文档
+
+## 📄 许可证
+
+本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
+
+## 🙏 致谢
+
+- [chyroc/lark](https://github.com/chyroc/lark) - Feishu Go SDK
+- [88250/lute](https://github.com/88250/lute) - Markdown 引擎
+- 所有贡献者和用户的支持
+
+## 📞 联系方式
+
+- 提交 Issue：[GitHub Issues](https://github.com/Mars160/feishu2hexo/issues)
+- 功能建议：[GitHub Discussions](https://github.com/Mars160/feishu2hexo/discussions)
+- 邮箱：your-email@example.com
+
+---
+
+<div align="center">
+
+**如果这个项目对你有帮助，请给它一个 ⭐️**
+
+Made with ❤️ by [Wsine](https://github.com/Wsine)
+
+</div>

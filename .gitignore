@@ -14,8 +14,8 @@
 # Dependency directories (remove the comment below to include it)
 # vendor/
 bin/
-feishu2md
-feishu2md4web
+feishu2*
+feishu2*4web
 .env
 ./static
 VERSION
@@ -26,3 +26,5 @@ node_modules
 .next
 .vercel
 .vscode/**
+
+CLAUDE.md
