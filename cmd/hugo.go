@@ -114,6 +114,8 @@ func hugoDocument(ctx context.Context, client *core.Client, url string, opts *Hu
 		}
 	}
 
+	markdown_link_prefix := "/post_imgs/" + sanitizeFileName + "/"
+
 	first_img := ""
 
 	if !dlConfig.Output.SkipImgDownload {
@@ -127,8 +129,7 @@ func hugoDocument(ctx context.Context, client *core.Client, url string, opts *Hu
 			if first_img == "" {
 				first_img = localLink
 			}
-			localLink = strings.Replace(localLink, "static/", "", 1)
-			markdown = strings.Replace(markdown, imgToken, localLink[2:], 1)
+			markdown = strings.Replace(markdown, imgToken, markdown_link_prefix+imgToken+".png", 1)
 		}
 	}
 
