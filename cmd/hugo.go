@@ -123,13 +123,17 @@ func hugoDocument(ctx context.Context, client *core.Client, url string, opts *Hu
 			localLink, err := client.DownloadImage(
 				ctx, imgToken, img_dir,
 			)
+			ext := filepath.Ext(localLink)
+			if ext == "" {
+				ext = ".png"
+			}
 			if err != nil {
 				return err
 			}
 			if first_img == "" {
 				first_img = localLink
 			}
-			markdown = strings.Replace(markdown, imgToken, markdown_link_prefix+imgToken+".png", 1)
+			markdown = strings.Replace(markdown, imgToken, markdown_link_prefix+imgToken+ext, 1)
 		}
 	}
 
